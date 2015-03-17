@@ -64,19 +64,35 @@ var socket;
 
 world = {};
 //XXX: TODO Make this prettier!
+//XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
-    with(context) {
-        beginPath();
-        lineWidth = 3;
-        var x = entity["x"];
-        var y = entity["y"];
-        //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);
-        stroke();
+    context.beginPath();
+    context.lineWidth = 2;
+    var x = entity["x"];
+    var y = entity["y"];
+    //moveTo(x,y);
+    context.fillStyle = entity["colour"];
+    context.strokeStyle = context.fillStyle;
+    context.arc(x, y, (entity["radius"]) ? entity["radius"]:50, 0, 2.0 * Math.PI, false);
+    // shadow it?
+    if (entity['shadow']){
+        context.shadowColor = '#FFB3BF';
+        context.shadowBlur = 7;
+        context.shadowOffsetX = 1;
+        context.shadowOffsetY = 1;
+    } else {
+        context.shadowColor = '#000000';
+        context.shadowBlur = 5;
+        context.shadowOffsetX = 1;
+        context.shadowOffsetY = 1;
     }
+    if (!entity['startpoint'] && !entity['endpoint']){
+        context.strokeStyle = 'black';
+    }
+    context.fill();
+    context.stroke();
 }
+
 function prepEntity(entity) {
     if (!entity["colour"]) {
         entity["colour"] = "#FF0000";
@@ -240,18 +256,18 @@ mouse = (function() {
     self.mouseinstall();
     return self;
 })();
-// Add the application specific mouse listeners!
-//XXX: TODO Make these prettier!
+
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#FF1664', 'radius': 15});
 });
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'red', 'radius': 15});
 });
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y,'colour':'#FFB3BF',
+                          'radius':3, 'shadow': true});
 });
+
 function update() {
     drawFrame();
 }
