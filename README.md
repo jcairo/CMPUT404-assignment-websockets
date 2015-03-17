@@ -1,3 +1,26 @@
+Poop image from:
+https://twitter.com/poopemojis
+
+Guitar image from:
+http://pngimg.com/download/3375
+
+Carrot image from:
+http://pngimg.com/download/4997
+
+Code for websockets taken from:
+https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+
+
+
+
+
+
+
+
+
+
+
+
 CMPUT404-assignment-websockets
 ==============================
 

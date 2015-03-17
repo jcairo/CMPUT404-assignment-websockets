@@ -22,11 +22,28 @@
     "/>
     <script src="json2.js"></script>
   </head>
+  <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+      #btn {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+      }
+  </style>
   <body bgcolor="white" height="100%" width="100%">
+    <button id='button'>Clear</button>
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas>
 
     <script>
 
+btn = document.getElementById('button');
+btn.addEventListener('click', function() {
+    sendJSONXMLHTTPRequest('../clear', clearFrame);
+    world = {};
+});
 
 function sendJSONXMLHTTPRequest(url, callback) {
     var xhr = new XMLHttpRequest();
@@ -59,9 +76,10 @@ var host = window.location.host;
 var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
+context.fillStyle = "#FFFFFF";
+context.fillRect(0, 0, 100, 100);
 var wscounter = 0;
 var socket;
-
 world = {};
 //XXX: TODO Make this prettier!
 function drawCircle(context,entity) {
@@ -71,10 +89,16 @@ function drawCircle(context,entity) {
         var x = entity["x"];
         var y = entity["y"];
         //moveTo(x,y);
-        fillStyle = entity["colour"];
-        strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);
-        stroke();
+        // fillStyle = entity["colour"];
+        // strokeStyle = fillStyle;
+        // arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);
+        // stroke();
+
+        if (entity.image === 'carrotImage') {
+            x = x - 25;
+            y = y -25;
+        }
+        context.drawImage(imageMap[entity['image']], x, y);
     }
 }
 function prepEntity(entity) {
@@ -89,7 +113,7 @@ function prepEntity(entity) {
 function clearFrame() {
     with(context) {
     moveTo(0,0);
-    fillStyle = "#000";
+    fillStyle = "#FFFFFF";
     fillRect(0,0,W,H);
     }
 }
@@ -142,7 +166,7 @@ function addEntity(entity, data) {
 }
 var counter = 0;
 function addEntityWithoutName(data) {
-    var name = "X"+(counter++)%100;
+    var name = "X"+(counter++)%10000;
     addEntity(name,data);
 }
 // canvas + mouse/touch is complicated
@@ -243,14 +267,13 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y, 'image':'guitarImage'});
 });
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y, 'image': 'carrotImage'});
 });
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    addEntityWithoutName({'x':x,'y':y, 'image': 'poopImage'});
 });
 function update() {
     drawFrame();
@@ -282,12 +305,31 @@ function wsSetup() {
         debug("WebSocket Error:" + msg.data);
     };
     socket.onmessage = function(msg) {
-        addToWOrld(JSON.parse(msg.data));
-        console.log(msg);
+        if (JSON.parse(msg.data)['command']){
+            clearFrame();
+        } else {
+            addToWOrld(JSON.parse(msg.data));
+            console.log(msg);
+        }
 
     };
 }
 wsSetup();
+function loadImages(){
+    poopImage = new Image();
+    poopImage.src = 'poop.png';
+    guitarImage = new Image();
+    guitarImage.src = 'guitar.png';
+    carrotImage = new Image();
+    carrotImage.src = 'carrot.png';
+    imageMap = {
+        'poopImage':poopImage,
+        'guitarImage':guitarImage,
+        'carrotImage':carrotImage
+    };
+}
+
+loadImages();
 // 30 frames per second
 setInterval( update, 1000/30.0);
     </script>

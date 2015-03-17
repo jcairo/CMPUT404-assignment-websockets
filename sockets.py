@@ -42,8 +42,6 @@ class World:
         entry = self.space.get(entity, dict())
         entry[key] = value
         self.space[entity] = entry
-        print "Updating."
-        print myWorld;
         # self.update_listeners(entity)
 
     def set(self, entity, data):
@@ -69,6 +67,9 @@ class World:
 myWorld = World()
 
 clients = list()
+def send_clear():
+    for client in clients:
+        client.put(json.dumps({'command':'clear'}))
 
 def send_all(msg):
     for client in clients:
@@ -182,6 +183,7 @@ def get_entity(entity):
 def clear():
     '''Clear the world out!'''
     myWorld.clear()
+    send_clear()
     return jsonify(myWorld.world())
 
 
