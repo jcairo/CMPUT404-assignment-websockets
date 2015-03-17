@@ -251,6 +251,7 @@ function wsSetup() {
         debug("WebSocket Error:" + msg.data);
     };
     socket.onmessage = function(msg) {
+        console.log(msg);
         try {
             debug("WebSocket Recv:" + msg.data);
             //XXX: TODO What are you going to do here?
