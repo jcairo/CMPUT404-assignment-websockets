@@ -26,25 +26,6 @@ app = Flask(__name__)
 sockets = Sockets(app)
 app.debug = True
 
-clients = list()
-
-def send_all(msg):
-    for client in clients:
-        client.put( msg )
-
-def send_all_json(obj):
-    send_all( json.dumps(obj) )
-
-
-class Client:
-    def __init__(self):
-        self.queue = queue.Queue()
-
-    def put(self, v):
-        self.queue.put_nowait(v)
-
-    def get(self):
-        return self.queue.get()
 
 
 class World:
@@ -52,17 +33,18 @@ class World:
         self.clear()
         # we've got listeners now!
         self.listeners = list()
-        self.clients = list()
     # Receives a function that can be called
     # with entity name and value
-    def add_set_listener(self, listener):
-        self.listeners.append(listener)
+    # def add_set_listener(self, listener):
+    #     self.listeners.append(listener)
 
     def update(self, entity, key, value):
         entry = self.space.get(entity, dict())
         entry[key] = value
         self.space[entity] = entry
-        self.update_listeners(entity)
+        print "Updating."
+        print myWorld;
+        # self.update_listeners(entity)
 
     def set(self, entity, data):
         self.space[entity] = data
@@ -86,12 +68,37 @@ class World:
 
 myWorld = World()
 
+clients = list()
+
+def send_all(msg):
+    for client in clients:
+        client.put( msg )
+
+def send_all_json(obj):
+    key = obj.keys()[0]
+    value = obj[key]
+    entity = obj
+    myWorld.set(key, value)
+    key = obj.keys()[0]
+    send_all( json.dumps(obj) )
+
+
+class Client:
+    def __init__(self):
+        self.queue = queue.Queue()
+
+    def put(self, v):
+        self.queue.put_nowait(v)
+
+    def get(self):
+        return self.queue.get()
+
 # updates a listener when called with
 # entity name and value
 def set_listener( entity, data ):
     ''' do something with the update ! '''
 
-myWorld.add_set_listener( set_listener)
+# myWorld.add_set_listener( set_listener)
 
 @app.route('/')
 def hello():
@@ -112,7 +119,7 @@ def read_ws(ws, client):
             print "WS RECV: %s" % msg
             if (msg is not None):
                 packet = json.loads(msg)
-                send_all_json( packet )
+                gevent.spawn(send_all_json, packet)
             else:
                 break
     except:
@@ -122,8 +129,10 @@ def read_ws(ws, client):
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
     websocket and read updates from the websocket '''
+    print 'connected'
     client = Client()
     clients.append(client)
+    # ws.send(jsonify(myWorld.world()))
     g = gevent.spawn( read_ws, ws, client )
     try:
         # this is the sending portion of the code.
